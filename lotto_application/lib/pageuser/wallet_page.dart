@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:lotto_application/page/login.dart';
 
 class WalletPage extends StatefulWidget {
-  final int userId;
+  final String userId;
 
   const WalletPage({super.key, required this.userId});
 
@@ -16,7 +16,7 @@ class _WalletPageState extends State<WalletPage> {
   String fullname = "";
   String phone = "";
   int walletAmount = 0;
-  String role = "";  // Added role variable to store the role
+  String role = "";
   bool isLoading = true;
   String errorMessage = "";
 
@@ -26,22 +26,20 @@ class _WalletPageState extends State<WalletPage> {
     fetchUserData();
   }
 
-  // ดึงข้อมูลจาก API
   Future<void> fetchUserData() async {
     try {
-      final response = await http.get(Uri.parse("http://192.168.100.106:3000/api/lotto/customer/${widget.userId}"));
-      
-      // ตรวจสอบว่าคำขอตอบกลับด้วยสถานะ 200 (OK)
+      // ใช้ IP 10.0.2.2 สำหรับ Android Emulator
+      final response = await http.get(Uri.parse("http://10.0.2.2:3000/api/lotto/customer/${widget.userId}"));
+
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
 
-        // ตรวจสอบ success ใน response
         if (jsonData['success']) {
           setState(() {
             fullname = jsonData['data']['fullname'] ?? "";
             phone = jsonData['data']['phone'] ?? "";
-            walletAmount = jsonData['data']['wallet_amount'] ?? 0;
-            role = jsonData['data']['role'] ?? "";  // Added role parsing here
+            walletAmount = jsonData['data']['balance'] ?? 0;
+            role = jsonData['data']['role'] ?? "";
             isLoading = false;
           });
         } else {
@@ -66,7 +64,6 @@ class _WalletPageState extends State<WalletPage> {
 
   @override
   Widget build(BuildContext context) {
-    // หากกำลังโหลดข้อมูล
     if (isLoading) {
       return Scaffold(
         appBar: AppBar(
@@ -77,18 +74,16 @@ class _WalletPageState extends State<WalletPage> {
       );
     }
 
-    // หากมีข้อความ error
     if (errorMessage.isNotEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: const Text("บัญชีผู้ใช้"),
           backgroundColor: Colors.teal,
         ),
-        body: Center(child: Text(errorMessage)), // แสดงข้อความ error
+        body: Center(child: Text(errorMessage, style: TextStyle(color: Colors.red))), // แสดงข้อความ error
       );
     }
 
-    // เมื่อโหลดข้อมูลสำเร็จ
     return Scaffold(
       appBar: AppBar(
         title: const Text("บัญชีผู้ใช้"),
@@ -171,8 +166,6 @@ class _WalletPageState extends State<WalletPage> {
               ],
             ),
           ),
-
-          // Displaying the role now
           Container(
             padding: const EdgeInsets.all(12),
             width: double.infinity,

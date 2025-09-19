@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:lotto_application/page/login.dart';
 import 'package:lotto_application/pageadmin/Account_page.dart';
 import 'package:lotto_application/pageadmin/lotto_admin.dart';
 import 'package:lotto_application/pageadmin/random_page.dart';
 import 'package:lotto_application/pageadmin/setting_page.dart';
-import 'package:lotto_application/pageuser/wallet_page.dart'; // นำเข้า WalletPage
 
 class HomePage_admin extends StatefulWidget {
-  const HomePage_admin({super.key});
+  final String userId; // รับ userId จากหน้าอื่นๆ เช่น LoginPage
+
+  const HomePage_admin({super.key, required this.userId});
+  
 
   @override
   State<HomePage_admin> createState() => _HomePageState();
@@ -17,10 +18,10 @@ class HomePage_admin extends StatefulWidget {
 
 class _HomePageState extends State<HomePage_admin> {
   int _selectedIndex = 0;
-  int userId = 8; // Replace this with actual userId
   int walletAmount = 0;
   bool isLoading = true; // Use this to track loading state
   String errorMessage = "";
+  late final String userId; // เก็บ userId
 
   final List<Widget> _pages = [
     const LottoAdminPage(),
@@ -34,14 +35,15 @@ class _HomePageState extends State<HomePage_admin> {
     'จัดการ',
   ];
 
+  // ฟังก์ชันเพื่อดึงข้อมูลยอดเงินจาก API
   Future<void> fetchWalletAmount() async {
     try {
-      final response = await http.get(Uri.parse("http://192.168.100.106:3000/api/lotto/customer/$userId"));
+      final response = await http.get(Uri.parse("http://192.168.100.106:3000/api/lotto/customer/${widget.userId}"));
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         if (jsonData['success']) {
           setState(() {
-            walletAmount = jsonData['data']['wallet_amount'] ?? 0;
+            walletAmount = jsonData['data']['balance'] ?? 0;
             isLoading = false; // Set loading to false when data is fetched
           });
         } else {
@@ -73,6 +75,7 @@ class _HomePageState extends State<HomePage_admin> {
   @override
   void initState() {
     super.initState();
+    userId = widget.userId; // เก็บค่า userId
     fetchWalletAmount(); // Fetch wallet amount when the page is initialized
   }
 
@@ -107,7 +110,7 @@ class _HomePageState extends State<HomePage_admin> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Account_admin(userId: userId), // Pass userId to WalletPage
+                              builder: (context) => Account_admin(userId: int.parse(userId)), // Pass userId to WalletPage
                             ),
                           );
                         },
@@ -142,4 +145,4 @@ class _HomePageState extends State<HomePage_admin> {
       ),
     );
   }
-} 
+}

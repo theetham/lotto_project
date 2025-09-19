@@ -32,6 +32,7 @@ router.post("/", (req, res) => {
         message: "เข้าสู่ระบบสำเร็จ",
         user: {
           id: user.id,
+          idx: user.idx,
           fullname: user.fullname,
           phone: user.phone,
           role: user.role,
